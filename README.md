@@ -437,21 +437,27 @@ describe Widget do
   end
 end
 
-descirbe '`have_a_version_with_changes` matcher' do
-  it '' do
-    widget.
+descirbe '`have_a_version_with` matcher' do
+  it 'is possible to do assertions on version attributes' do
+    widget.update_attributes!(name: 'Leonard', an_integer: 1)
+    widget.update_attributes!(name: 'tky')
+    widget.update_attributes!(name: 'tky')
+    expect(widget).to have_a_version_with name'', an_integer: 1
+    expect(widget).to have_a_version_with an_integer: 1
+    expect(widget).to have_a_version_with name: 'tky'
   end
 end
 
-
-
-
-
-
-
-
-
-
+descirbe '`have_a_version_with_changes` matcher' do
+  it '' do
+    widget.update_attributes!(name: 'tky', an_integer: 1)
+    widget.update_attributes!(name: 'tky')
+    widget.update_attributes!(name: 'tky')
+    expect(widget).to have_a_version_with_changes name: 'Leonard', an_integer: 2
+    expect(widget).to have_a_version_with_changes an_integer: 2
+    expect(widget).to have_a_version_with_changes name: 'tky'
+  end
+end
 
 # features/support/env.rb
 ENV["RAILS_ENV"] ||= 'cucumber'
