@@ -291,13 +291,53 @@ class Post < ActiveRecord::Base
   has_paper_trail class_name: 'Version', versions: :drafts
 end
 Post.new.versions
+```
+```
+Usage:
+  rails generate paper_trail:install [options]
+```
+
+```ruby
+# app/models/paper_trail/version.rb
+module PaperTrail
+  class Version < ActiveRecord::Base
+    include PaperTrail::VersionConcern
+    attr_accessible :item_type, :item_id, :event, :whodunnit, :object, :object_changes, :created_at
+  end
+end
 
 
 
 
 
 
+# features/support/env.rb
+ENV["RAILS_ENV"] ||= 'cucumber'
+require File.expand_path(File.dirname(__FILE__) + '../../config/environment')
+require 'paper_trail/frameworks/cucumber'
 
+Given /I want versioning on my model/ do
+  with_versioning do
+  end
+end
+
+#spec/rails_helper.rb
+require 'sprork'
+Sprok.prefork do
+  ENV["RAILS_ENV"] ||= 'test'
+  require 'spec_helper'
+  require File.expand_path("../../config/environment", __FILE__)
+  require 'rspec/rails'
+  require 'paper_trail/frameworks/rspec'
+  require 'paper_trail/frameworks/cucumber'
+end
+
+#spec/rails_helper.rb
+ENV["RAILS_ENV"] ||= 'test'
+require 'spec_helper'
+require File.expand_path("../../config/environment", __FILE__)
+require 'rspec/rails'
+require 'paper_trail/frameworks/rspec'
 
 ```
 
