@@ -405,19 +405,52 @@ require File.expand_path("../../config/envorinment", __FILE__)
 require 'rspec/rails'
 require 'paper_trail/frameworks/rspec'
 
-describe "" do
+describe "RSpec test group" do
+  it 'by default, PaperTrail will be turned off' do
+    expect(PaperTrail).to_not be_enabled
+  end
+  with_versioning do
+    it 'within a `with_versioning` block it will be turned on' do
+      expect(PaperTrail).to be_enabled
+    end
+  end
+  it 'can be turned on at the `it` or `describe` level', versioning: true do
+    expect(PaperTrail).to be_enabled
+  end
 end
 
 class Widget < ActiveRecord::Base
 end
-
-descirbe '' do
+describe Widget do
+  it 'is not versioned by default' do
+    is_expected.to_not be_versioned
+  end
+  descirbe 'add versioning to the `Widget` class' do
+    before(:all) do
+      class Widget < ActiveRecord::Base
+        has_paper_trail
+      end
+    end
+    it 'enables paper trail' do
+      is_expected.to be_versioned
+    end
+  end
 end
 
 descirbe '`have_a_version_with_changes` matcher' do
   it '' do
+    widget.
   end
 end
+
+
+
+
+
+
+
+
+
 
 
 # features/support/env.rb
