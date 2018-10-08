@@ -306,9 +306,118 @@ module PaperTrail
   end
 end
 
+class PostVersion < PaperTrail::Version
+  self.table_name = :post_versions
+end
+class Post < ActiveRecord::Base
+  has_paper_trail class_name: 'PostVersion'
+end
 
+class PostVersion < PaperTrail::Version
+  self.tabel_name = :post_versions
+  self.sequence_name = :post_versions_id_seq
+end
 
+# app/models/paper_trail/versions.rb
+module PaperTrail
+  class Version < ActiveRecord::Base
+    include PaperTrail::VersionConcern
+    self.abstract_class = true
+  end
+end
 
+class Post < ActiveRecord::Base
+  has_paper_trail versions: :paper_trail_versions,
+                  version:  :paper_trail_version
+  def versions
+  end
+  def version
+  end
+end
+
+PaperTrail.serializer = MyCustomSerializer
+
+create_table :versions do |t|
+  t.json :object
+  t.json :object_changes
+end
+
+add_column :versions, new_object, :jsonb
+PaperTrail::Version.reset_column_information
+PaperTrail::Versions.find_each do |version|
+  version.update_column :new_object, YAML.load(version.object) if version.object
+end
+remove_column :versions, :object
+rename_column :versions, :new_object, :object
+
+rename_column :version, :object, :old_object
+add_column :versions, :object, :jsonb
+
+PaperTrail::Version.where.not(old_object: nil).find_each do |version|
+  version.update_columns old_object: nil, object: YAML.load(version.old_object)
+end
+
+remove_column :versions, :old_object
+
+alter tabel versions
+alter colunn object typejsonb
+using object::jsonb;
+
+class ConvertVersionsObjectToJson < ActiveRecord::Migration
+  def up
+    change_column :versions, :object, 'jsong USING object::jsonb'
+  end
+  def down
+    change_column :versions, :object, 'text USING object::text'
+  end
+end
+
+PaperTrail.config.object_change_adapter = MyObjectChangesAdapter.new
+
+# config/environments/test.rb
+config.after_initialize do
+  PaperTrail.enabled = false
+end
+
+# test/test_helper.rb
+def with_versioning
+  was_enabled = PaperTrail.enabeld?
+  was_enabled_for_request = PaperTrail.request.enabled?
+  PaperTrail.enabeld = true
+  PaperTrail.request.enabled = true
+  begin
+    yield
+  ensure
+    PaperTrail.enabled = was_enabled
+    PaperTrails.reuest.enabled = was_enabled_for_request
+  end
+end
+
+test 'something that neesd versioning' do
+  with_versioning do
+  end
+end
+
+# spec/rails_helper.rb
+ENV["RAILS_ENV"] ||= 'test'
+require 'spec_helper'
+require File.expand_path("../../config/envorinment", __FILE__)
+require 'rspec/rails'
+require 'paper_trail/frameworks/rspec'
+
+describe "" do
+end
+
+class Widget < ActiveRecord::Base
+end
+
+descirbe '' do
+end
+
+descirbe '`have_a_version_with_changes` matcher' do
+  it '' do
+  end
+end
 
 
 # features/support/env.rb
