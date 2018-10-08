@@ -150,24 +150,83 @@ PaperTrail.request.disable_model(Banana)
 PeperTrail.request.enable_model(Banana)
 PaperTrail.request.enabled_for_model?(Banana)
 
+class ApplicationController < ActionController::Base
+  def paper_trail_enabled_for_controller
+    super && request.user_agent != 'Disable User-Agent'
+  end
+end
 
+PaperTrail.config.version_limit = 3
+PaperTrail.config.version_limit = nil
 
+widget = Widget.find 42
+widget.update_attributes name: 'tky tky'
+widget = widget.paper_trail.previous_version
+widget.save
 
+widget = widget.paper_trail.version_at(1.day.ago)
+widget.save
 
+widget = Widget.find(42)
+widget.destroy
+versions = widget.versions
+widget = versions.last.reify
+widget.save
 
+live_widget = Widget.find 42
+live_widget.versions.length
+widget = live_widget.paper_trail.previous_version
+widget = widget.paper_trail.previous_version
+widget = widget.paper_trail.next_version
+widget.paper_trail.next_version
 
+widget = Widget.find 42
+version = widget.versinon[-2]
+previous = version.previous
+next = version.next
 
+current_version_number = version.index
 
+latest_version = Widget.find(42).version.last
+widget = latest_version.reify
+widget.version == latest_version
 
+widget = Widget.find 42
+widget.live?
+widget = widget.paper_trail.perevious_version
+widget.live?
 
+PaperTrail::Version.where_object(content: 'Hello', title: 'Article')
+PaperTrail::Version.where_object_changes(atr: 'v')
 
+widget = Widget.create name: 'tky'
+widget.versions.last.changeset
+# => {
+# =>  "name" =>[nil, "tky"],
+# =>  "created_at" => [nil, 2018-10-08 10:00:10 UTC]
+# =>  "updated_at" =>[nil, 2018-10-08 10:00:10 UTC],
+# =>  "id" => [nil, 1]
+# => }
+widget.update_attributes name: 'tky'
+widget.versions.last.changeset
+# => {
+# =>  "name" =>["tky", "tky"],
+# =>  "updated_at" => [2018-10-08 10:00:10 UTC, 2018-10-08 10:00:10 UTC]
+# => }
+widget.destroy
+widget.versions.last.changeset
+# => {}
 
+sql> delete from versions where created_at < 2018-10-01;
+PaperTrail::Version.delete_all ['created_at < ?', 1.week.ago]
 
+PaperTrail.request.whodunnit = 'tky tky'
+widget.update_attributes name: 'tky'
+widget.versions.last.whodunnit
 
-
-
-
-
+PaperTrail.request.whodunnit = proc do
+  caller.find { |c| c.starts_with? Rails.root.to_s }
+end
 
 
 
