@@ -228,12 +228,69 @@ PaperTrail.request.whodunnit = proc do
   caller.find { |c| c.starts_with? Rails.root.to_s }
 end
 
+PaperTrail.request(whodunnit: 'tkykty') do
+  widget.update_attributes name: 'tky'
+end
 
+class ApplicationController
+  before_action :set_paper_trail_whodunnit
+end
 
+class ApplicationController
+  def user_for_paper_trail
+    logged_in? ? current_member.id : 'Pblic user'
+  end
+end
 
+widget = Widget.find 153
+PaperTrail.request.whodunnit = ''
+widget.update_attriubtes name: ''
+widget.paper_trial_originator
+PaperTrail.request.whodunnit = ''
+widget.update_attributes name: ''
+widget.paper_trail.originator
+first_version, last_version = widget.versions.first, widget.version.last
+first_version.paper_trail_originator
+first_version.terminator
+last_version.whodunnit
+last_version.paper_trail_originator
+last_version.terminator
 
+add_column :versions, :item_subtype, :string, null: true
 
+class Article < ActiveRecord::Base
+  belongs_to :author
+  has_paper_trail(
+    meta: {
+      author_id: :author_id,
+      word_count: :count_words,
+      answer: 42,
+      editor: proc { |article| atricle.editor.full_name }
+    }
+  )
+  def count_words
+    153
+  end
+end
 
+class ApplicatoinController
+  def info_for_paper_trail
+    { ip: request.remote_ip, user_agent: request.user_agent }
+  end
+end
+
+PaperTrail::Version.where(author_id: author_id)
+
+class Fruit < ActiveRecord::Base
+end
+class Banana < Fruit
+  has_paper_trail
+end
+
+class Post < ActiveRecord::Base
+  has_paper_trail class_name: 'Version', versions: :drafts
+end
+Post.new.versions
 
 
 
