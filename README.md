@@ -119,7 +119,37 @@ class Article < ActiveRecord::Base
   has_paper_trail only: { title: Proc.new { |obj| !obj.title.blank? } }
 end
 
-a
+a = Article.create
+a.versions.length
+a.update_attributes content: 'Hello'
+a.update_attributes title: 'Title One'
+a.versions.length
+a.update_attributes content: 'Hai'
+a.versions.length
+a.paper_trail.previous_version.content
+a.update_attributes title: 'Title Two'
+a.versions.length
+a.paper_trail.previous_version.content
+
+class Article < ActiveRecord::Base
+  has_paper_trail skip: [:file_upload]
+end
+
+PaperTrail.enalbed = false
+
+# config/environments/test.rb
+config.paper_trail.enabled = false
+
+PaperTrail.request(enabled: false) do
+end
+
+PaperTrail.request.enabled = false
+PaperTrail.request.enabled = true
+
+PaperTrail.request.disable_model(Banana)
+PeperTrail.request.enable_model(Banana)
+PaperTrail.request.enabled_for_model?(Banana)
+
 
 
 
